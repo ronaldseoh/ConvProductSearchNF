@@ -17,7 +17,7 @@ class ProductSearchModel(nn.Module):
         #cost a large amount of time even when debug is set to False.
         #This must have something to do with function call.
         if self.debug:
-            print val
+            print(val)
     def __init__(self, vocab_size, user_size, product_size,
             query_max_length, word_dists, product_dists,
             aspect_dists, value_dists,
@@ -69,7 +69,7 @@ class ProductSearchModel(nn.Module):
         self.softmax_func = nn.Softmax(dim = -1) # batch, 1+self.n_negs
         self.qlinear = nn.Linear(self.embedding_size, self.embedding_size) #by default bias=True
         if self.comb_net_struct == "linear_fc":
-            print "train with linear_fc"
+            print("train with linear_fc")
             self.word_av_fc = nn.Linear(2 * self.embedding_size, self.embedding_size) #by default bias=True
         #the concatnated semantic representation learned from words and av.
 
@@ -113,7 +113,7 @@ class ProductSearchModel(nn.Module):
         #random sample values for each aspect may cost a lost, but not impossible
         self.value_dists_per_aspect = dict()
         for aspect in aspect_value_count_dic:
-            value_keys_for_a = aspect_value_count_dic[aspect].keys()
+            value_keys_for_a = list(aspect_value_count_dic[aspect].keys())
             value_dists_for_a = FloatTensor(self.neg_distributes([aspect_value_count_dic[aspect][v] for v in value_keys_for_a]))
             self.value_dists_per_aspect[self.aword_idx2_aid[aspect]] = (np.asarray(value_keys_for_a), value_dists_for_a)
 
@@ -218,9 +218,9 @@ class ProductSearchModel(nn.Module):
     def get_product_scores(self, user_idxs, query_word_idxs, product_idxs = None):
         # product_idxs can be specified or all the availale products in the category
         # get user embedding [None, embed_size]
-        query_word_idxs, user_idxs = map(self.convert2cuda_lt,
+        query_word_idxs, user_idxs = list(map(self.convert2cuda_lt,
                 [query_word_idxs, user_idxs],
-                [True, True]) #it is for evaluation
+                [True, True])) #it is for evaluation
         query_vecs = self.get_embedding_from_words(self.word_emb, query_word_idxs, self.padding_idx)
         # get query embedding [batch_size, embed_size]
         batch_size = len(user_idxs)
@@ -277,8 +277,8 @@ class ProductSearchModel(nn.Module):
                 neg_pa_value_prob = neg_pa_value_prob.sigmoid().log()
             #batch_size * product_slice_size
 
-            for i in xrange(batch_size):
-                for j in xrange(max_av_count):
+            for i in range(batch_size):
+                for j in range(max_av_count):
                     if value_symbols[i][j] == 1:
                         pa_value_scores[i,s_pidx:e_pidx] += pa_value_prob[i, :, j, j] * aspect_masks[i,j]
                     elif value_symbols[i][j] == -1:
@@ -322,8 +322,8 @@ class ProductSearchModel(nn.Module):
             #batch_size * product_slice_size
             #print(pa_value_prob.size())
 
-            for i in xrange(batch_size):
-                for j in xrange(max_av_count):
+            for i in range(batch_size):
+                for j in range(max_av_count):
                     if not aspect_masks[i,j]:
                         continue
                     pa_value_scores[i,s_pidx:e_pidx] += \
@@ -340,9 +340,9 @@ class ProductSearchModel(nn.Module):
         aspect_idxs = aspect_value_entries[:,:,0]
         value_idxs = aspect_value_entries[:,:,2]
         value_symbols = aspect_value_entries[:,:,3]
-        query_word_idxs, user_idxs, aspect_idxs, value_idxs = map(
+        query_word_idxs, user_idxs, aspect_idxs, value_idxs = list(map(
                 self.convert2cuda_lt,
-                [query_word_idxs, user_idxs, aspect_idxs, value_idxs])
+                [query_word_idxs, user_idxs, aspect_idxs, value_idxs]))
         query_vecs = self.get_embedding_from_words(self.word_emb, query_word_idxs, self.padding_idx)
         user_vecs = self.user_emb(user_idxs)
         batch_size, max_av_count = aspect_idxs.size()
@@ -635,17 +635,17 @@ class ProductSearchModel(nn.Module):
         user_idxs, product_idxs, query_word_idxs, _,\
                 wrapped_neg_idxs, aspect_value_entries = batch_data
         av_u_neg_pidxs, p_neg_aspect_idxs, pa_neg_value_idxs \
-                = map(self.convert2cuda_lt, wrapped_neg_idxs[3:])
+                = list(map(self.convert2cuda_lt, wrapped_neg_idxs[3:]))
         #[aspect, aspect_len, self.vword_idx2_vid[val[0]], False]
         aspect_idxs = [x[0] for x in aspect_value_entries if x] #multiple idx for one aspect
         value_idxs = [x[2] for x in aspect_value_entries if x] # value_id: single idx for one value
         value_symbols = [x[3] for x in aspect_value_entries if x] # pos or neg value
-        corres_product_idxs = [product_idxs[i] for i in xrange(len(product_idxs)) if aspect_value_entries[i]]
-        valid_idxs = [i for i in xrange(len(product_idxs)) if aspect_value_entries[i]]
+        corres_product_idxs = [product_idxs[i] for i in range(len(product_idxs)) if aspect_value_entries[i]]
+        valid_idxs = [i for i in range(len(product_idxs)) if aspect_value_entries[i]]
 
         user_idxs, product_idxs, corres_product_idxs, query_word_idxs, valid_idxs \
-                = map(self.convert2cuda_lt, \
-                [user_idxs, product_idxs, corres_product_idxs, query_word_idxs, valid_idxs])
+                = list(map(self.convert2cuda_lt, \
+                [user_idxs, product_idxs, corres_product_idxs, query_word_idxs, valid_idxs]))
         #get query embeddings
         query_vecs = self.get_embedding_from_words(self.word_emb, query_word_idxs, self.padding_idx)
         user_vecs = self.user_emb(user_idxs)
@@ -654,7 +654,7 @@ class ProductSearchModel(nn.Module):
         iav_loss = torch.tensor(0.).cuda() if self.word_emb.weight.is_cuda else torch.tensor(0.)
         up_loss = torch.tensor(0.).cuda() if self.word_emb.weight.is_cuda else torch.tensor(0.)
         if len(aspect_idxs) > 0:
-            aspect_idxs, value_idxs = map(self.convert2cuda_lt, [aspect_idxs, value_idxs])
+            aspect_idxs, value_idxs = list(map(self.convert2cuda_lt, [aspect_idxs, value_idxs]))
             value_symbols = self.convert2cuda_ft(value_symbols)
 
             pos_idxs = (value_symbols == 1).nonzero()[:,0]
@@ -713,8 +713,8 @@ class ProductSearchModel(nn.Module):
         #get query embedding
         start_time = time.time()
         user_idxs, product_idxs, query_word_idxs, word_idxs \
-                = map(self.convert2cuda_lt, batch_data[:-1])
-        u_neg_words_idxs, p_neg_words_idxs, u_neg_p_idxs = map(self.convert2cuda_lt, batch_data[-1])
+                = list(map(self.convert2cuda_lt, batch_data[:-1]))
+        u_neg_words_idxs, p_neg_words_idxs, u_neg_p_idxs = list(map(self.convert2cuda_lt, batch_data[-1]))
 
         query_vecs = self.get_embedding_from_words(self.word_emb, query_word_idxs, self.padding_idx)
         user_vecs = self.user_emb(user_idxs)

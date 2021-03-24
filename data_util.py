@@ -20,7 +20,7 @@ class upsearch_data:
         #get product/user/vocabulary information
         self.info_level = info_level
         self.is_feedback_same_user = is_feedback_same_user
-        print "info_level:%d" % self.info_level
+        print("info_level:%d" % self.info_level)
         self.is_av_embed_shared = is_av_embed_shared
         self.keep_feedback_type = keep_feedback_type
         self.feedback_user_model = feedback_user_model #first, random, aspect
@@ -64,8 +64,8 @@ class upsearch_data:
         #pad -1 before actual query words
         #different from embedding lookup function in tensorflow, -1 will cause index out of range in pytorch
         # we need to use actual padding index
-        for i in xrange(len(self.query_words)):
-            self.query_words[i] = [self.padding_idx for j in xrange(self.query_max_length-len(self.query_words[i]))] + self.query_words[i]
+        for i in range(len(self.query_words)):
+            self.query_words[i] = [self.padding_idx for j in range(self.query_max_length-len(self.query_words[i]))] + self.query_words[i]
 
         #get review sets
         self.word_count = 0
@@ -88,7 +88,7 @@ class upsearch_data:
         self.word_dists = self.neg_distributes(self.vocab_distribute)
         self.product_dists = self.neg_distributes(self.product_distribute)
 
-        print "total_word_count:%d" % self.word_count
+        print("total_word_count:%d" % self.word_count)
 
         #get product query sets
         self.product_query_idx = []
@@ -103,8 +103,8 @@ class upsearch_data:
                 self.product_query_idx.append(query_idx)
 
         #read av.train.txt.gz
-        print("Data statistic: vocab %d, user %d, product %d\n" % (self.vocab_size,
-                    self.user_size, self.product_size))
+        print(("Data statistic: vocab %d, user %d, product %d\n" % (self.vocab_size,
+                    self.user_size, self.product_size)))
         self.value_dists = []
         self.aspect_dists = []
         self.aspect_value_count_dic = dict()
@@ -182,8 +182,8 @@ class upsearch_data:
                 u, p = [int(x) for x in up.split("@")]
                 av = dict()
                 for x in avs.split(":"):
-                    a = map(int, x.split('|')[0].split(' '))
-                    v = map(int, x.split('|')[1].split(' '))
+                    a = list(map(int, x.split('|')[0].split(' ')))
+                    v = list(map(int, x.split('|')[1].split(' ')))
                     if not self.is_av_embed_shared:
                         a = [self.av_word2id[x] for x in a]
                         v = [self.av_word2id[x] for x in v]
@@ -216,26 +216,26 @@ class upsearch_data:
                 #key(u,p): [aspect_wordid_str, value]
 
     def construct_aspect_value_keys_from_train(self):
-        self.aspect_keys = self.aspect_value_count_dic.keys()
+        self.aspect_keys = list(self.aspect_value_count_dic.keys())
         self.aspect_distr = [sum([self.aspect_value_count_dic[x][y] \
             for y in self.aspect_value_count_dic[x]]) \
             for x in self.aspect_keys]
         av_pair_count = sum([len(self.aspect_value_count_dic[x]) \
             for x in self.aspect_keys])
-        print("aspect_value_count:%s" % av_pair_count)
+        print(("aspect_value_count:%s" % av_pair_count))
         #print(self.aspect_distr)
         self.aword_idx2_aid = dict() #before padding
-        for a_id in xrange(len(self.aspect_keys)):
+        for a_id in range(len(self.aspect_keys)):
             self.aword_idx2_aid[self.aspect_keys[a_id]] = a_id
 
-        self.value_keys = self.value_count_dic.keys()
+        self.value_keys = list(self.value_count_dic.keys())
         self.value_distr = [self.value_count_dic[x] for x in self.value_keys]
         self.aspect_keys_len = np.asarray([len(x) for x in self.aspect_keys])
         self.vword_idx2_vid = dict()
-        for v_id in xrange(len(self.value_keys)):
+        for v_id in range(len(self.value_keys)):
             self.vword_idx2_vid[self.value_keys[v_id]] = v_id
 
-        for i in xrange(len(self.aspect_keys)):
+        for i in range(len(self.aspect_keys)):
             self.aspect_keys[i] = list(self.aspect_keys[i]) \
                     + [self.av_padding_idx] * (self.max_a_length - len(self.aspect_keys[i]))
         self.aspect_keys.append([self.av_padding_idx] * self.max_a_length)
@@ -252,8 +252,8 @@ class upsearch_data:
         print("self.vword_idx2_vid:%s" % self.vword_idx2_vid)
         '''
 
-        print("value_keys_count:%s" % len(self.value_keys))
-        print("aspect_count: %s" % len(self.aspect_distr))
+        print(("value_keys_count:%s" % len(self.value_keys)))
+        print(("aspect_count: %s" % len(self.aspect_distr)))
 
         # we need to do as array after padding,
         #otherwise, + in ndarray means numeric operator, not concatenate two lists.
@@ -261,11 +261,11 @@ class upsearch_data:
     def sub_sampling(self, subsample_threshold):
         if subsample_threshold == 0.0:
             return
-        self.sub_sampling_rate = [1.0 for _ in xrange(self.vocab_size)]
+        self.sub_sampling_rate = [1.0 for _ in range(self.vocab_size)]
         threshold = sum(self.vocab_distribute) * subsample_threshold
-        print "threshold:%f" % threshold
+        print("threshold:%f" % threshold)
         count_sub_sample = 0
-        for i in xrange(self.vocab_size):
+        for i in range(self.vocab_size):
             #vocab_distribute[i] could be zero if the word does not appear in the training set
             if self.vocab_distribute[i] == 0:
                 self.sub_sampling_rate[i] = 0
@@ -275,8 +275,8 @@ class upsearch_data:
                                             1.0)
             count_sub_sample += 1
 
-        self.sample_count = sum([self.sub_sampling_rate[i] * self.vocab_distribute[i] for i in xrange(self.vocab_size)])
-        print "sample_count", self.sample_count
+        self.sample_count = sum([self.sub_sampling_rate[i] * self.vocab_distribute[i] for i in range(self.vocab_size)])
+        print("sample_count", self.sample_count)
 
     def get_av_count_dic_for_u_plist(self, product_list, uid=None):
         av_dic = colls.defaultdict(dict)
@@ -324,7 +324,7 @@ class upsearch_data:
 
 
     def get_av_dic_for_u_plist(self, product_list, uid=None):
-        print uid
+        print(uid)
         av_dic = colls.defaultdict(set)
         #aspect_id (unique identifier for aspect), values (tuples)
         for p in product_list:
@@ -344,7 +344,7 @@ class upsearch_data:
                         #print(v)
                         continue
                     av_dic[self.aword_idx2_aid[a]].add(v)
-                    print uid, self.aword_idx2_aid[a], v
+                    print(uid, self.aword_idx2_aid[a], v)
             else:
                 for each_u in self.product_av_dic[p]:
                     for a in self.product_av_dic[p][each_u]:
@@ -359,7 +359,7 @@ class upsearch_data:
                             #print(v)
                             continue
                         av_dic[self.aword_idx2_aid[a]].add(v)
-                        print each_u, self.aword_idx2_aid[a], v
+                        print(each_u, self.aword_idx2_aid[a], v)
 
         return av_dic
 
@@ -491,7 +491,7 @@ class upsearch_data:
         return sel_av_pairs
 
     def setup_data_set(self, words_to_train):
-        self.train_seq = range(len(self.review_info))
+        self.train_seq = list(range(len(self.review_info)))
         self.words_to_train = words_to_train
         self.finished_word_num = 0
 
@@ -669,7 +669,7 @@ class upsearch_data:
         #when there is relevant results in the top i for (u,q),
         #during the i+1 th iteration, (u,q) will be removed
         self.test_seq = []
-        for review_idx in xrange(len(self.review_info)):
+        for review_idx in range(len(self.review_info)):
             user_idx = self.review_info[review_idx][0]
             product_idx = self.review_info[review_idx][1]
             for query_idx in self.product_query_idx[product_idx]:
@@ -751,7 +751,7 @@ class upsearch_data:
                 av_user_idxs, av_query_idxs, av_query_word_idxs, np.asarray(query_av_pairs), has_next
 
     def read_train_product_ids(self, data_path):
-        self.user_train_product_set_list = [set() for i in xrange(self.user_size)]
+        self.user_train_product_set_list = [set() for i in range(self.user_size)]
         self.train_review_size = 0
         with gzip.open("%s/train.txt.gz" % data_path , 'r') as fin:
             for line in fin:
@@ -824,10 +824,10 @@ class upsearch_data:
                 uidx, qidx = uq_pair
                 user_id = self.user_ids[uidx]
                 #map to the string id
-                for i in xrange(len(user_ranklist_map[uq_pair])):
+                for i in range(len(user_ranklist_map[uq_pair])):
                     product_id = user_ranklist_map[uq_pair][i]
                     product_id = self.product_ids[product_id]
                     line = "%s_%d Q0 %s %d %f ProductSearchEmbedding\n" % (user_id, qidx, product_id, i+1, user_ranklist_score_map[uq_pair][i])
                     rank_fout.write(line)
-        print "total qu:", total_qu
+        print("total qu:", total_qu)
 

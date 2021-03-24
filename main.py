@@ -1,4 +1,4 @@
-from __future__ import print_function
+
 import shutil
 import torch
 import math
@@ -369,7 +369,7 @@ def get_product_scores_av(args):
     data_set.prepare_test_epoch()
     data_set.read_train_product_ids(args.input_train_dir)
     torch.set_grad_enabled(False)#do not require grad
-    for cur_iter_i in xrange(1, args.iter_count + 1):
+    for cur_iter_i in range(1, args.iter_count + 1):
         data_set.initialize_test_iter()
         has_next = True
         qu_count = 0
@@ -445,7 +445,7 @@ def store_sorted_ranklist(data_set, cutoff,
     #the order is descending
     #print(sorted_product_idxs.shape)
     #batch_size, product_size,
-    for i in xrange(user_product_scores.shape[0]):
+    for i in range(user_product_scores.shape[0]):
         u_idx = user_idxs[i]
         q_idx = query_idxs[i]
         data_set.get_test_product_ranklist(
