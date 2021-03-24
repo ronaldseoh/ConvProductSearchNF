@@ -177,6 +177,8 @@ def train(args):
     model_dir = "%s/model" % (args.save_dir)
     if not os.path.isdir(model_dir):
         os.makedirs(model_dir)
+        
+    model_path = get_model_path(args)
 
     words_to_train = float(args.max_train_epoch * data_set.word_count) + 1
     data_set.setup_data_set(words_to_train)
