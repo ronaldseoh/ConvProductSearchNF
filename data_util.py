@@ -55,7 +55,7 @@ class upsearch_data:
         self.padding_idx = self.vocab_size #0, vocab_size - 1, padding
         self.query_words = []
         self.query_max_length = 0
-        with gzip.open("%s/query.txt.gz" % input_train_dir, 'r') as fin:
+        with gzip.open("%s/query.txt.gz" % input_train_dir, 'rt') as fin:
             for line in fin:
                 words = [int(i) for i in line.strip().split(' ')]
                 if len(words) > self.query_max_length:
@@ -72,7 +72,7 @@ class upsearch_data:
         self.vocab_distribute = np.zeros(self.vocab_size)
         self.review_info = []
         self.review_text = []
-        with gzip.open("%s/%s.txt.gz" % (input_train_dir, set_name), 'r') as fin:
+        with gzip.open("%s/%s.txt.gz" % (input_train_dir, set_name), 'rt') as fin:
             for line in fin:
                 arr = line.strip().split('\t')
                 self.review_info.append((int(arr[0]), int(arr[1]))) # (user_idx, product_idx)
@@ -92,7 +92,7 @@ class upsearch_data:
 
         #get product query sets
         self.product_query_idx = []
-        with gzip.open("%s/%s_query_idx.txt.gz" % (input_train_dir, set_name), 'r') as fin:
+        with gzip.open("%s/%s_query_idx.txt.gz" % (input_train_dir, set_name), 'rt') as fin:
             for line in fin:
                 arr = line.strip().split(' ')
                 query_idx = []
@@ -145,7 +145,7 @@ class upsearch_data:
         self.av_word2id[self.not_idx] = len(self.av_id2word)
         self.av_id2word.append(self.not_idx)
 
-        with file("%s/lexicon.%s.stemmed.id.sorted.txt" % (data_path, threshold)) as fin:
+        with open("%s/lexicon.%s.stemmed.id.sorted.txt" % (data_path, threshold)) as fin:
             for line in fin:
                 aspect_info, value_info = line.strip('\r\n').split(':')
                 aspect = tuple(map(int, aspect_info.split('|')[0].split(' '))) # aspect|#value|#appeared_in_all
@@ -176,7 +176,7 @@ class upsearch_data:
         #score can be used or not
         self.max_a_length = 0
         self.max_v_length = 0
-        with gzip.open("%s/av.%s.%s.txt.gz" % (input_train_dir, set_name, threshold), 'r') as fin:
+        with gzip.open("%s/av.%s.%s.txt.gz" % (input_train_dir, set_name, threshold), 'rt') as fin:
             for line in fin:
                 up, avs = line.strip().split(",")
                 u, p = [int(x) for x in up.split("@")]
